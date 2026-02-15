@@ -12,8 +12,14 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-559d$-&%ixac@^m9mr3ab#(zdon#dm9u###$0q*&#%*34^_84%"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = []
 
@@ -117,4 +123,45 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-DISCORD_BOT_TOKEN = "YOUR_DISCORD_BOT_TOKEN"
+DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default="")
+
+# Logging configuration
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    # Logger settings
+    "loggers": {
+        # Logger for Django
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        # Logger for custom apps
+        "discordapp": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+    # Handler settings
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "dev",
+        },
+    },
+    # Formatter settings
+    "formatters": {
+        "dev": {
+            "format": "\t".join(
+                [
+                    "%(asctime)s",
+                    "[%(levelname)s]",
+                    "%(pathname)s(Line:%(lineno)d)",
+                    "%(message)s",
+                ]
+            )
+        },
+    },
+}

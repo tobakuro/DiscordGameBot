@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 
 CustomUser = get_user_model()
 
-intents = discord.Intents.all()
+intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
@@ -20,10 +20,14 @@ async def on_ready():
     await tree.sync()
 
 
-# @app_commands.default_permissions(administrator=True)
-# @tree.command(name="sendembed", description="特定の埋め込みメッセージを送信します")
-# async def send_embed_message(ctx:discord.Interaction, message_key:int):
-#     pass
+@app_commands.default_permissions(administrator=True)
+@tree.command(name="test", description="テストコマンド")
+async def send_embed_message(ctx: discord.Interaction):
+    """スラッシュコマンドで埋め込みメッセージを送信する例"""
+    embed = discord.Embed(
+        title="テストコマンド", description="これはテストメッセージです", color=0x00FF00
+    )
+    await ctx.response.send_message(embed=embed)
 
 
 class Command(BaseCommand):

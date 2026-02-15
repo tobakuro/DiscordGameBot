@@ -13,6 +13,16 @@
       "autoStartBrowser": true,
       "program": "${workspaceFolder}\\backend\\manage.py",
       "envFile": "${workspaceFolder}\\backend\\.env"
+    },
+    {
+      "name": "runbot",
+      "type": "debugpy",
+      "request": "launch",
+      "args": ["runbot"],
+      "django": true,
+      "autoStartBrowser": false,
+      "program": "${workspaceFolder}\\backend\\manage.py",
+      "envFile": "${workspaceFolder}\\backend\\.env"
     }
   ]
 }

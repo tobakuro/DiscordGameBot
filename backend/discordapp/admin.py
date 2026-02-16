@@ -1,3 +1,23 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import DiscordUser, OverSleptResult, PredictionResult, QuizResult
+
+
+@admin.register(DiscordUser)
+class DiscordUserAdmin(admin.ModelAdmin):
+    list_display = ("username", "discord_id")
+
+
+@admin.register(QuizResult)
+class QuizResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "correct_count", "failed_count")
+
+
+@admin.register(OverSleptResult)
+class OverSleptResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "overslept_count")
+
+
+@admin.register(PredictionResult)
+class PredictionResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "correct_count", "failed_count")

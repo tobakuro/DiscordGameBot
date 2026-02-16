@@ -5,7 +5,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from .commands.command1 import test1
+from .commands.command1 import split_voice
+from .commands.quizcmd import quiz
 
 CustomUser = get_user_model()
 
@@ -30,7 +31,8 @@ class MyClient(discord.Client):
 
 
 client = MyClient(intents=discord.Intents.default())
-client.tree.add_command(test1)
+client.tree.add_command(quiz)
+client.tree.add_command(split_voice)
 
 
 class Command(BaseCommand):

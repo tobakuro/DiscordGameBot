@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from .commands.command1 import test1
+from .commands.wakewake import wake1
+from .commands.flash import flash1
 
 CustomUser = get_user_model()
 
@@ -31,6 +33,8 @@ class MyClient(discord.Client):
 
 client = MyClient(intents=discord.Intents.default())
 client.tree.add_command(test1)
+client.tree.add_command(wake1)
+client.tree.add_command(flash1)
 
 
 class Command(BaseCommand):

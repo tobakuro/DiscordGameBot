@@ -89,8 +89,8 @@ class AddMemberToGuildAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        guild_id = self.kwargs.get("guild_id")
-        guild_name = self.kwargs.get("guild_name", "")
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
         discord_id = request.data.get("discord_id")
         username = request.data.get("username")
         guild = create_or_update_discord_guild(guild_id, guild_name)
@@ -104,8 +104,8 @@ class RemoveMemberFromGuildAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        guild_id = self.kwargs.get("guild_id")
-        guild_name = self.kwargs.get("guild_name", "")
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
         discord_id = request.data.get("discord_id")
         username = request.data.get("username")
         guild = create_or_update_discord_guild(guild_id, guild_name)
@@ -123,8 +123,8 @@ class QuizResultListAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        guild_id = self.kwargs.get("guild_id")
-        guild_name = self.kwargs.get("guild_name", "")
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
         guild = create_or_update_discord_guild(guild_id, guild_name)
         members = guild.members.all()
         serializers = self.get_serializer(
@@ -139,7 +139,16 @@ class QuizResultRetrieveAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        guild_id = request.data.get("guild_id", "")
+        guild_name = request.data.get("guild_name", "")
+        user = create_or_update_discord_user(discord_id, username)
+        if guild_id and guild_name:
+            guild = create_or_update_discord_guild(guild_id, guild_name)
+            if user not in guild.members.all():
+                guild.members.add(user)
+                guild.save()
         quiz_result = create_quiz_result(user)
         serializer = self.get_serializer(quiz_result)
         return Response(serializer.data)
@@ -151,7 +160,9 @@ class QuizResultPlusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         quiz_result = create_quiz_result(user)
         quiz_result.correct_count += 1
         quiz_result.save()
@@ -165,7 +176,9 @@ class QuizResultMinusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         quiz_result = create_quiz_result(user)
         quiz_result.failed_count += 1
         quiz_result.save()
@@ -179,8 +192,8 @@ class OverSleptResultListAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        guild_id = self.kwargs.get("guild_id")
-        guild_name = self.kwargs.get("guild_name", "")
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
         guild = create_or_update_discord_guild(guild_id, guild_name)
         members = guild.members.all()
         serializers = self.get_serializer(
@@ -195,7 +208,9 @@ class OverSleptResultRetrieveAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         overslept_result = create_overslept_result(user)
         serializer = self.get_serializer(overslept_result)
         return Response(serializer.data)
@@ -207,7 +222,9 @@ class OverSleptResultPlusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         overslept_result = create_overslept_result(user)
         overslept_result.overslept_count += 1
         overslept_result.save()
@@ -221,8 +238,8 @@ class PredictionResultListAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        guild_id = self.kwargs.get("guild_id")
-        guild_name = self.kwargs.get("guild_name", "")
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
         guild = create_or_update_discord_guild(guild_id, guild_name)
         members = guild.members.all()
         serializers = self.get_serializer(
@@ -237,7 +254,9 @@ class PredictionResultRetrieveAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         prediction_result = create_prediction_result(user)
         serializer = self.get_serializer(prediction_result)
         return Response(serializer.data)
@@ -249,7 +268,9 @@ class PredictionResultPlusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         prediction_result = create_prediction_result(user)
         prediction_result.correct_count += 1
         prediction_result.save()
@@ -263,7 +284,9 @@ class PredictionResultMinusAPIView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = create_or_update_discord_user(kwargs["discord_id"], kwargs["username"])
+        user = create_or_update_discord_user(
+            request.data.get("discord_id"), request.data.get("username")
+        )
         prediction_result = create_prediction_result(user)
         prediction_result.failed_count += 1
         prediction_result.save()

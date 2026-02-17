@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -141,14 +141,7 @@ class QuizResultRetrieveAPIView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         discord_id = request.data.get("discord_id")
         username = request.data.get("username")
-        guild_id = request.data.get("guild_id", "")
-        guild_name = request.data.get("guild_name", "")
         user = create_or_update_discord_user(discord_id, username)
-        if guild_id and guild_name:
-            guild = create_or_update_discord_guild(guild_id, guild_name)
-            if user not in guild.members.all():
-                guild.members.add(user)
-                guild.save()
         quiz_result = create_quiz_result(user)
         serializer = self.get_serializer(quiz_result)
         return Response(serializer.data)

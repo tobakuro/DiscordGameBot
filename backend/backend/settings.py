@@ -127,7 +127,13 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Discord bot token
+
 DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default="")
+
+# Admin information
+ADMIN_USERNAME = env("ADMIN_USERNAME")
+ADMIN_PASSWORD = env("ADMIN_PASSWORD")
 
 # Django REST Framework settings
 

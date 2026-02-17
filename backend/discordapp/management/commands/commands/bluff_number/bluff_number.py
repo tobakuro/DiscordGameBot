@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from .bluff_number_game import BluffNumberGame
-from .bluff_number_views import LobbyView, active_games
+from .bluff_number_views import LobbyView, active_games, game_messages
 
 
 @app_commands.command(
@@ -49,3 +49,7 @@ async def bluff_number(interaction: discord.Interaction):
 
     view = LobbyView(game)
     await interaction.response.send_message(embed=embed, view=view)
+
+    # ロビーメッセージを記録
+    lobby_msg = await interaction.original_response()
+    game_messages[channel_id] = [lobby_msg]

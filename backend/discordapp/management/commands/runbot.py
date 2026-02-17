@@ -1,14 +1,13 @@
 import discord
-import requests
 from discord import app_commands
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from .commands import modules, quizcmd
-from .commands.wakewake import wake1
-from .commands.flash import flash
 from .commands.bluff_number.bluff_number import bluff_number
+from .commands.flash import flash
+from .commands.wakewake import wake1
 
 CustomUser = get_user_model()
 
@@ -23,12 +22,6 @@ class MyClient(discord.Client):
     def get_token(self) -> str:
         res = modules.login_request()
         return res.json().get("token", "")
-      
-        # r = requests.post(
-        #     f"http://127.0.0.1:8000/api/login/",
-        #     json={"username": "arcsino", "password": "testpass123"},
-        # )
-        # return r.json().get("token", "")
 
     async def setup_hook(self):
         await self.tree.sync()
@@ -61,13 +54,13 @@ class MyClient(discord.Client):
                 f"{member.display_name} has joined the voice channel."
             )
 
+
 client = MyClient(intents=discord.Intents.all())
 client.tree.add_command(quizcmd.quiz)
 client.tree.add_command(quizcmd.quiz_result_list)
 client.tree.add_command(quizcmd.quiz_result)
 client.tree.add_command(wake1)
 client.tree.add_command(flash)
-client.tree.add_command(quiz)
 client.tree.add_command(bluff_number)
 
 

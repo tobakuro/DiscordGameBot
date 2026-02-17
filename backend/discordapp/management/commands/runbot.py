@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
+from .commands.bluff_number.bluff_number import bluff_number
 from .commands.quizcmd import quiz
 
 CustomUser = get_user_model()
@@ -48,6 +49,7 @@ class MyClient(discord.Client):
 
 client = MyClient(intents=discord.Intents.default())
 client.tree.add_command(quiz)
+client.tree.add_command(bluff_number)
 
 
 class Command(BaseCommand):

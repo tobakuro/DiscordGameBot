@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import (
+    BluffNumberResult,
     DiscordGuild,
     DiscordUser,
     OverSleptResult,
@@ -12,6 +13,7 @@ from .models import (
     QuizResult,
 )
 from .serializers import (
+    BluffNumberResultSerializer,
     LoginSerializer,
     OverSleptResultSerializer,
     PredictionResultSerializer,
@@ -67,6 +69,16 @@ def create_prediction_result(user: DiscordUser) -> PredictionResult:
             user=user, correct_count=0, failed_count=0
         )
     return prediction_result
+
+
+def create_bluff_number_result(user: DiscordUser) -> BluffNumberResult:
+    try:
+        bluff_number_result = BluffNumberResult.objects.get(user=user)
+    except BluffNumberResult.DoesNotExist:
+        bluff_number_result = BluffNumberResult.objects.create(
+            user=user, play_count=0, win_count=0
+        )
+    return bluff_number_result
 
 
 class LoginAPIView(generics.GenericAPIView):
@@ -284,4 +296,66 @@ class PredictionResultMinusAPIView(generics.UpdateAPIView):
         prediction_result.failed_count += 1
         prediction_result.save()
         serializer = self.get_serializer(prediction_result)
+        return Response(serializer.data)
+
+
+class BluffNumberResultListAPIView(generics.GenericAPIView):
+    queryset = BluffNumberResult.objects.all()
+    serializer_class = BluffNumberResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
+        guild = create_or_update_discord_guild(guild_id, guild_name)
+        members = guild.members.all()
+        serializers = self.get_serializer(
+            [create_bluff_number_result(member) for member in members], many=True
+        )
+        return Response(serializers.data)
+
+
+class BluffNumberResultRetrieveAPIView(generics.RetrieveAPIView):
+    queryset = BluffNumberResult.objects.all()
+    serializer_class = BluffNumberResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        bluff_number_result = create_bluff_number_result(user)
+        serializer = self.get_serializer(bluff_number_result)
+        return Response(serializer.data)
+
+
+class BluffNumberPlayAPIView(generics.UpdateAPIView):
+    queryset = BluffNumberResult.objects.all()
+    serializer_class = BluffNumberResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        bluff_number_result = create_bluff_number_result(user)
+        bluff_number_result.play_count += 1
+        bluff_number_result.save()
+        serializer = self.get_serializer(bluff_number_result)
+        return Response(serializer.data)
+
+
+class BluffNumberWinAPIView(generics.UpdateAPIView):
+    queryset = BluffNumberResult.objects.all()
+    serializer_class = BluffNumberResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        bluff_number_result = create_bluff_number_result(user)
+        bluff_number_result.win_count += 1
+        bluff_number_result.save()
+        serializer = self.get_serializer(bluff_number_result)
         return Response(serializer.data)

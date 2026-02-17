@@ -69,3 +69,17 @@ class PredictionResult(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class BluffNumberResult(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
+    play_count = models.IntegerField(default=0)
+    win_count = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = "ブラフナンバー結果"
+        verbose_name_plural = "ブラフナンバー結果一覧"
+
+    def __str__(self):
+        return self.user.username

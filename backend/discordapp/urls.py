@@ -2,6 +2,10 @@ from django.urls import include, path
 
 from .views import (
     AddMemberToGuildAPIView,
+    BluffNumberPlayAPIView,
+    BluffNumberResultListAPIView,
+    BluffNumberResultRetrieveAPIView,
+    BluffNumberWinAPIView,
     LoginAPIView,
     OverSleptResultListAPIView,
     OverSleptResultPlusAPIView,
@@ -84,5 +88,25 @@ urlpatterns = [
         "prediction-result/minus/",
         view=PredictionResultMinusAPIView.as_view(),
         name="prediction-result-minus",
+    ),
+    path(
+        "bluff-number/results/",
+        view=BluffNumberResultListAPIView.as_view(),
+        name="bluff-number-result-list",
+    ),
+    path(
+        "bluff-number/result/",
+        view=BluffNumberResultRetrieveAPIView.as_view(),
+        name="bluff-number-result-retrieve",
+    ),
+    path(
+        "bluff-number/play/",
+        view=BluffNumberPlayAPIView.as_view(),
+        name="bluff-number-play",
+    ),
+    path(
+        "bluff-number/win/",
+        view=BluffNumberWinAPIView.as_view(),
+        name="bluff-number-win",
     ),
 ]

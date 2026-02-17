@@ -1,11 +1,23 @@
 from django.contrib import admin
 
-from .models import DiscordUser, OverSleptResult, PredictionResult, QuizResult
+from .models import (
+    DiscordGuild,
+    DiscordUser,
+    OverSleptResult,
+    PredictionResult,
+    QuizResult,
+)
 
 
 @admin.register(DiscordUser)
 class DiscordUserAdmin(admin.ModelAdmin):
     list_display = ("username", "discord_id")
+
+
+@admin.register(DiscordGuild)
+class DiscordGuildAdmin(admin.ModelAdmin):
+    list_display = ("name", "guild_id")
+    filter_horizontal = ("members",)
 
 
 @admin.register(QuizResult)

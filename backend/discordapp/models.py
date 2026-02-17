@@ -16,11 +16,25 @@ class DiscordUser(models.Model):
         return self.username
 
 
+class DiscordGuild(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    guild_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    members = models.ManyToManyField(DiscordUser, related_name="guilds")
+
+    class Meta:
+        verbose_name = "Discordギルド"
+        verbose_name_plural = "Discordギルド一覧"
+
+    def __str__(self):
+        return self.name
+
+
 class QuizResult(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
-    correct_count = models.IntegerField()
-    failed_count = models.IntegerField()
+    correct_count = models.IntegerField(default=0)
+    failed_count = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = "クイズ結果"
@@ -33,7 +47,7 @@ class QuizResult(models.Model):
 class OverSleptResult(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
-    overslept_count = models.IntegerField()
+    overslept_count = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = "寝坊結果"
@@ -46,8 +60,8 @@ class OverSleptResult(models.Model):
 class PredictionResult(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
-    correct_count = models.IntegerField()
-    failed_count = models.IntegerField()
+    correct_count = models.IntegerField(default=0)
+    failed_count = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = "予測結果"

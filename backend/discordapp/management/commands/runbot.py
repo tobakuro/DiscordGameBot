@@ -1,6 +1,5 @@
 import discord
 import requests
-from asgiref.sync import sync_to_async
 from discord import app_commands
 from django.conf import settings
 from django.contrib.auth import get_user_model

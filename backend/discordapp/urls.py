@@ -1,6 +1,7 @@
 from django.urls import include, path
 
 from .views import (
+    AddMemberToGuildAPIView,
     LoginAPIView,
     OverSleptResultListAPIView,
     OverSleptResultPlusAPIView,
@@ -13,11 +14,22 @@ from .views import (
     QuizResultMinusAPIView,
     QuizResultPlusAPIView,
     QuizResultRetrieveAPIView,
+    RemoveMemberFromGuildAPIView,
 )
 
 app_name = "discordapp"
 urlpatterns = [
     path("login/", view=LoginAPIView.as_view(), name="login"),
+    path(
+        "guild/<str:guild_id>/<str:guild_name>/add-member/<str:discord_id>/<str:username>/",
+        view=AddMemberToGuildAPIView.as_view(),
+        name="add-member-to-guild",
+    ),
+    path(
+        "guild/<str:guild_id>/<str:guild_name>/remove-member/<str:discord_id>/<str:username>/",
+        view=RemoveMemberFromGuildAPIView.as_view(),
+        name="remove-member-from-guild",
+    ),
     path(
         "quiz-results/<str:guild_id>/<str:guild_name>/",
         view=QuizResultListAPIView.as_view(),

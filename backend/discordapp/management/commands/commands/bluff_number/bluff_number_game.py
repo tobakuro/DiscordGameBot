@@ -20,6 +20,15 @@ class Player:
 
 
 @dataclass
+class RoundLog:
+    """1ラウンドの履歴。"""
+    round_number: int
+    secret_numbers: dict[str, int] = field(default_factory=dict)  # display_name -> number
+    declarations: list[str] = field(default_factory=list)  # "A: 12以上" 形式
+    result: str = ""  # チャレンジ/タイムアウト結果
+
+
+@dataclass
 class RoundState:
     round_number: int
     current_declaration: int = 0
@@ -41,6 +50,8 @@ class BluffNumberGame:
         self.phase = GamePhase.LOBBY
         self.current_round: Optional[RoundState] = None
         self.round_number = 0
+        self.round_logs: list[RoundLog] = []
+        self._current_log: Optional[RoundLog] = None
 
     def add_player(self, user_id: int, display_name: str) -> tuple[bool, str]:
         if self.phase != GamePhase.LOBBY:
@@ -68,6 +79,10 @@ class BluffNumberGame:
         self.current_round = RoundState(
             round_number=self.round_number,
             turn_player_index=first_index,
+        )
+        self._current_log = RoundLog(
+            round_number=self.round_number,
+            secret_numbers={p.display_name: p.secret_number for p in self.players},
         )
         self.phase = GamePhase.TURN
 
@@ -104,6 +119,9 @@ class BluffNumberGame:
         self.current_round.turn_player_index = (
             (self.current_round.turn_player_index + 1) % self.MAX_PLAYERS
         )
+        self._current_log.declarations.append(
+            f"{turn_player.display_name}: {declared_value}以上"
+        )
         return True, f"{turn_player.display_name} が「合計は {declared_value} 以上」と宣言しました！"
 
     def make_challenge(self, user_id: int) -> tuple[bool, str, Optional[Player], Optional[Player]]:
@@ -139,12 +157,22 @@ class BluffNumberGame:
             )
 
         self.phase = GamePhase.ROUND_END
+        self._current_log.declarations.append(
+            f"{challenger.display_name}: チャレンジ！"
+        )
+        if actual_sum < declared:
+            self._current_log.result = f"チャレンジ成功！ {declarator.display_name} -1点"
+        else:
+            self._current_log.result = f"チャレンジ失敗！ {challenger.display_name} -1点"
+        self.round_logs.append(self._current_log)
         return True, result_msg, loser, winner
 
     def timeout_current_player(self) -> str:
         current_player = self.get_current_turn_player()
         current_player.score -= 1
         self.phase = GamePhase.ROUND_END
+        self._current_log.result = f"タイムアウト！ {current_player.display_name} -1点"
+        self.round_logs.append(self._current_log)
         return (
             f"{current_player.display_name} が時間切れ！\n"
             f"{current_player.display_name} が -1 ポイント。"
@@ -169,6 +197,27 @@ class BluffNumberGame:
         winner = sorted_players[0]
         medals = ["\U0001f947", "\U0001f948", "\U0001f949"]
         lines = [f"優勝: **{winner.display_name}**！\n"]
+        for i, p in enumerate(sorted_players):
+            lines.append(f"{medals[i]} {p.display_name}: {p.score} ポイント")
+        return "\n".join(lines)
+
+    def get_game_summary(self) -> str:
+        """ゲーム全体のまとめを生成する。"""
+        lines = []
+        for log in self.round_logs:
+            numbers = " / ".join(
+                f"{name}:{num}" for name, num in log.secret_numbers.items()
+            )
+            actual_sum = sum(log.secret_numbers.values())
+            lines.append(f"**--- ラウンド {log.round_number} ---**")
+            lines.append(f"数字: {numbers} (合計: {actual_sum})")
+            lines.append(" \u2192 ".join(log.declarations))
+            lines.append(f"**{log.result}**")
+            lines.append("")
+
+        sorted_players = sorted(self.players, key=lambda p: p.score, reverse=True)
+        medals = ["\U0001f947", "\U0001f948", "\U0001f949"]
+        lines.append("**--- 最終結果 ---**")
         for i, p in enumerate(sorted_players):
             lines.append(f"{medals[i]} {p.display_name}: {p.score} ポイント")
         return "\n".join(lines)

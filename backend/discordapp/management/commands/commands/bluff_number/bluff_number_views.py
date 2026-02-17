@@ -9,7 +9,17 @@ from .bluff_number_game import BluffNumberGame, GamePhase
 # チャンネルID → ゲームインスタンス
 active_games: dict[int, BluffNumberGame] = {}
 
+# チャンネルID → ゲーム中にBotが送ったメッセージ一覧（削除用）
+game_messages: dict[int, list[discord.Message]] = {}
+
 TURN_TIMEOUT_SECONDS = 60
+
+
+def _track_message(channel_id: int, message: discord.Message):
+    """ゲーム中のBotメッセージを記録する。"""
+    if channel_id not in game_messages:
+        game_messages[channel_id] = []
+    game_messages[channel_id].append(message)
 
 
 class LobbyView(ui.View):
@@ -286,13 +296,15 @@ async def send_round_start(channel, game: BluffNumberGame):
         value=game.get_scoreboard(),
         inline=False,
     )
-    await channel.send(embed=embed)
+    msg1 = await channel.send(embed=embed)
+    _track_message(game.channel_id, msg1)
 
     secret_view = SecretNumberView(game)
-    await channel.send(
+    msg2 = await channel.send(
         "\U0001f522 下のボタンを押して自分の秘密の数字を確認してください。",
         view=secret_view,
     )
+    _track_message(game.channel_id, msg2)
 
     await asyncio.sleep(3)
     await send_turn_view(channel, game)
@@ -318,15 +330,26 @@ async def send_turn_view(channel, game: BluffNumberGame):
     view = TurnWaitView(game, channel)
     msg = await channel.send(embed=embed, view=view)
     view.message = msg
+    _track_message(game.channel_id, msg)
 
 
 async def send_game_over(channel, game: BluffNumberGame):
-    """ゲーム終了時の結果表示とクリーンアップ。"""
+    """ゲーム中のログを削除し、まとめを投稿してクリーンアップ。"""
+    # ゲーム中のBotメッセージを一括削除
+    messages = game_messages.pop(game.channel_id, [])
+    for msg in messages:
+        try:
+            await msg.delete()
+        except discord.NotFound:
+            pass
+
+    # まとめを1つの投稿にまとめる
     embed = discord.Embed(
-        title="\U0001f3c6 ゲーム終了！",
-        description=game.get_final_results(),
+        title="\U0001f3b2 ブラフナンバー - ゲーム結果",
+        description=game.get_game_summary(),
         color=0xFFD700,
     )
     await channel.send(embed=embed)
+
     if game.channel_id in active_games:
         del active_games[game.channel_id]

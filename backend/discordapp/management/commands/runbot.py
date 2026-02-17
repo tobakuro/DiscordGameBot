@@ -20,11 +20,12 @@ class MyClient(discord.Client):
         self.token = self.get_token()
 
     def get_token(self) -> str:
-        r = requests.post(
-            f"http://127.0.0.1:8000/api/login/",
-            json={"username": "arcsino", "password": "testpass123"},
-        )
-        return r.json().get("token", "")
+        # r = requests.post(
+        #     f"http://127.0.0.1:8000/api/login/",
+        #     json={"username": "arcsino", "password": "testpass123"},
+        # )
+        # return r.json().get("token", "")
+        pass
 
     async def setup_hook(self):
         await self.tree.sync()

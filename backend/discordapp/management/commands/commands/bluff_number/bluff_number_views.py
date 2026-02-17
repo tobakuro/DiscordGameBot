@@ -95,6 +95,83 @@ class SecretNumberView(ui.View):
         )
 
 
+def _build_action_embed(game: BluffNumberGame) -> discord.Embed:
+    """ターンプレイヤーに表示するアクション用Embed。"""
+    embed = discord.Embed(
+        title="\U0001f3af あなたのターン",
+        color=0xF39C12,
+    )
+    if game.current_round.current_declaration > 0:
+        declarator = game.players[game.current_round.declaring_player_index]
+        embed.description = (
+            f"現在の宣言: **合計 {game.current_round.current_declaration} 以上**"
+            f" (by {declarator.display_name})\n\n"
+            "宣言するか、チャレンジしてください。"
+        )
+    else:
+        embed.description = "最初の宣言をしてください。"
+    return embed
+
+
+class TurnWaitView(ui.View):
+    """チャンネルに表示する待機用View。ターンプレイヤーだけがボタンを押せる。"""
+
+    def __init__(self, game: BluffNumberGame, channel):
+        super().__init__(timeout=TURN_TIMEOUT_SECONDS)
+        self.game = game
+        self.channel = channel
+        self.message: Optional[discord.Message] = None
+        self.acted = False
+
+    @ui.button(label="アクションする", style=discord.ButtonStyle.primary)
+    async def action_button(self, interaction: discord.Interaction, button: ui.Button):
+        current_player = self.game.get_current_turn_player()
+        if interaction.user.id != current_player.user_id:
+            await interaction.response.send_message(
+                f"今は {current_player.display_name} のターンです。",
+                ephemeral=True,
+            )
+            return
+
+        if self.acted:
+            await interaction.response.send_message(
+                "既にアクション画面を開いています。", ephemeral=True
+            )
+            return
+        self.acted = True
+
+        action_view = TurnActionView(self.game, self.channel, self)
+        embed = _build_action_embed(self.game)
+        await interaction.response.send_message(
+            embed=embed, view=action_view, ephemeral=True
+        )
+
+    async def on_timeout(self):
+        if self.acted:
+            return
+
+        timeout_msg = self.game.timeout_current_player()
+        embed = discord.Embed(
+            title="\u23f0 タイムアウト",
+            description=timeout_msg,
+            color=0x95A5A6,
+        )
+        embed.add_field(
+            name="\U0001f4ca 現在のスコア",
+            value=self.game.get_scoreboard(),
+            inline=False,
+        )
+        if self.message:
+            await self.message.edit(embed=embed, view=None)
+
+        await asyncio.sleep(3)
+        continues = self.game.advance_to_next_round_or_end()
+        if continues:
+            await send_round_start(self.channel, self.game)
+        else:
+            await send_game_over(self.channel, self.game)
+
+
 class DeclarationSelect(ui.Select):
     """宣言値を選ぶドロップダウン。"""
 
@@ -118,24 +195,35 @@ class DeclarationSelect(ui.Select):
             return
 
         self.view.stop()
+        self.view.wait_view.stop()
 
+        # ephemeralメッセージを更新（本人のみ）
+        await interaction.response.edit_message(
+            content="宣言しました！", embed=None, view=None
+        )
+
+        # チャンネルの待機メッセージを宣言結果に更新
         embed = discord.Embed(
             title="\U0001f4e3 宣言",
             description=msg,
             color=0x3498DB,
         )
-        await interaction.response.edit_message(embed=embed, view=None)
+        if self.view.wait_view.message:
+            await self.view.wait_view.message.edit(
+                content=None, embed=embed, view=None
+            )
+
         await send_turn_view(interaction.channel, self.game)
 
 
-class TurnView(ui.View):
-    """プレイヤーのターン。宣言セレクトとチャレンジボタンを表示する。"""
+class TurnActionView(ui.View):
+    """ターンプレイヤーにephemeralで表示するアクションView。"""
 
-    def __init__(self, game: BluffNumberGame, channel):
+    def __init__(self, game: BluffNumberGame, channel, wait_view: TurnWaitView):
         super().__init__(timeout=TURN_TIMEOUT_SECONDS)
         self.game = game
         self.channel = channel
-        self.message: Optional[discord.Message] = None
+        self.wait_view = wait_view
 
         self.add_item(DeclarationSelect(game))
 
@@ -148,16 +236,6 @@ class TurnView(ui.View):
         challenge_btn.callback = self.challenge_callback
         self.add_item(challenge_btn)
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        current_player = self.game.get_current_turn_player()
-        if interaction.user.id != current_player.user_id:
-            await interaction.response.send_message(
-                f"今は {current_player.display_name} のターンです。",
-                ephemeral=True,
-            )
-            return False
-        return True
-
     async def challenge_callback(self, interaction: discord.Interaction):
         success, msg, loser, winner = self.game.make_challenge(interaction.user.id)
         if not success:
@@ -165,7 +243,14 @@ class TurnView(ui.View):
             return
 
         self.stop()
+        self.wait_view.stop()
 
+        # ephemeralメッセージを更新（本人のみ）
+        await interaction.response.edit_message(
+            content="チャレンジしました！", embed=None, view=None
+        )
+
+        # チャンネルにチャレンジ結果を表示
         embed = discord.Embed(
             title="\u26a1 チャレンジ結果",
             description=msg,
@@ -176,30 +261,10 @@ class TurnView(ui.View):
             value=self.game.get_scoreboard(),
             inline=False,
         )
-        await interaction.response.edit_message(embed=embed, view=None)
-
-        await asyncio.sleep(3)
-        continues = self.game.advance_to_next_round_or_end()
-        if continues:
-            await send_round_start(self.channel, self.game)
-        else:
-            await send_game_over(self.channel, self.game)
-
-    async def on_timeout(self):
-        timeout_msg = self.game.timeout_current_player()
-
-        embed = discord.Embed(
-            title="\u23f0 タイムアウト",
-            description=timeout_msg,
-            color=0x95A5A6,
-        )
-        embed.add_field(
-            name="\U0001f4ca 現在のスコア",
-            value=self.game.get_scoreboard(),
-            inline=False,
-        )
-        if self.message:
-            await self.message.edit(embed=embed, view=None)
+        if self.wait_view.message:
+            await self.wait_view.message.edit(
+                content=None, embed=embed, view=None
+            )
 
         await asyncio.sleep(3)
         continues = self.game.advance_to_next_round_or_end()
@@ -234,28 +299,24 @@ async def send_round_start(channel, game: BluffNumberGame):
 
 
 async def send_turn_view(channel, game: BluffNumberGame):
-    """ターンUIを送信する。"""
+    """ターンUIを送信する。チャンネルには待機メッセージのみ表示。"""
     current_player = game.get_current_turn_player()
     embed = discord.Embed(
         title=f"\U0001f3af {current_player.display_name} のターン",
+        description=f"{current_player.display_name} がアクションを選択中...",
         color=0xF39C12,
     )
     if game.current_round.current_declaration > 0:
         declarator = game.players[game.current_round.declaring_player_index]
-        embed.description = (
-            f"現在の宣言: **合計 {game.current_round.current_declaration} 以上**"
-            f" (by {declarator.display_name})"
+        embed.add_field(
+            name="現在の宣言",
+            value=f"**合計 {game.current_round.current_declaration} 以上** (by {declarator.display_name})",
+            inline=False,
         )
-    else:
-        embed.description = "最初の宣言をしてください。"
     embed.set_footer(text=f"\u23f0 {TURN_TIMEOUT_SECONDS}秒以内にアクションしてください")
 
-    view = TurnView(game, channel)
-    msg = await channel.send(
-        content=f"{current_player.display_name} のターンです！",
-        embed=embed,
-        view=view,
-    )
+    view = TurnWaitView(game, channel)
+    msg = await channel.send(embed=embed, view=view)
     view.message = msg
 
 

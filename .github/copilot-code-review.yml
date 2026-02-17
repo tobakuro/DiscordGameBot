@@ -1,0 +1,12 @@
+reviews:
+  # コードレビューの指示
+  instructions:
+    - path: "**/*.py"
+      instructions: |
+        - Pythonのベストプラクティスに従っているか確認してください
+        - セキュリティ上の問題がないか確認してください
+        - Django の規約に従っているか確認してください
+    - path: "**/*.js"
+      instructions: |
+        - JavaScriptのベストプラクティスに従っているか確認してください
+        - セキュリティ上の問題がないか確認してください

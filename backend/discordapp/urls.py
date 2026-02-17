@@ -1,0 +1,88 @@
+from django.urls import include, path
+
+from .views import (
+    AddMemberToGuildAPIView,
+    LoginAPIView,
+    OverSleptResultListAPIView,
+    OverSleptResultPlusAPIView,
+    OverSleptResultRetrieveAPIView,
+    PredictionResultListAPIView,
+    PredictionResultMinusAPIView,
+    PredictionResultPlusAPIView,
+    PredictionResultRetrieveAPIView,
+    QuizResultListAPIView,
+    QuizResultMinusAPIView,
+    QuizResultPlusAPIView,
+    QuizResultRetrieveAPIView,
+    RemoveMemberFromGuildAPIView,
+)
+
+app_name = "discordapp"
+urlpatterns = [
+    path("login/", view=LoginAPIView.as_view(), name="login"),
+    path(
+        "guild/add-member/",
+        view=AddMemberToGuildAPIView.as_view(),
+        name="add-member-to-guild",
+    ),
+    path(
+        "guild/remove-member/",
+        view=RemoveMemberFromGuildAPIView.as_view(),
+        name="remove-member-from-guild",
+    ),
+    path(
+        "quiz-results/",
+        view=QuizResultListAPIView.as_view(),
+        name="quiz-result-list",
+    ),
+    path(
+        "quiz-result/",
+        view=QuizResultRetrieveAPIView.as_view(),
+        name="quiz-result-retrieve",
+    ),
+    path(
+        "quiz-result/plus/",
+        view=QuizResultPlusAPIView.as_view(),
+        name="quiz-result-plus",
+    ),
+    path(
+        "quiz-result/minus/",
+        view=QuizResultMinusAPIView.as_view(),
+        name="quiz-result-minus",
+    ),
+    path(
+        "overslept-results/",
+        view=OverSleptResultListAPIView.as_view(),
+        name="overslept-result-list",
+    ),
+    path(
+        "overslept-result/",
+        view=OverSleptResultRetrieveAPIView.as_view(),
+        name="overslept-result-retrieve",
+    ),
+    path(
+        "overslept-result/plus/",
+        view=OverSleptResultPlusAPIView.as_view(),
+        name="overslept-result-plus",
+    ),
+    path(
+        "prediction-results/",
+        view=PredictionResultListAPIView.as_view(),
+        name="prediction-result-list",
+    ),
+    path(
+        "prediction-result/",
+        view=PredictionResultRetrieveAPIView.as_view(),
+        name="prediction-result-retrieve",
+    ),
+    path(
+        "prediction-result/plus/",
+        view=PredictionResultPlusAPIView.as_view(),
+        name="prediction-result-plus",
+    ),
+    path(
+        "prediction-result/minus/",
+        view=PredictionResultMinusAPIView.as_view(),
+        name="prediction-result-minus",
+    ),
+]

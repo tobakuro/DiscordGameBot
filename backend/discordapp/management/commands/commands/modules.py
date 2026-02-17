@@ -180,3 +180,51 @@ def prediction_result_minus_request(token, discord_id, username):
         if res.status_code == 200:
             break
     return res
+
+
+def bluff_number_result_list_request(token, guild_id, guild_name):
+    for _ in range(3):
+        res = requests.get(
+            f"http://127.0.0.1:8000/api/bluff-number/results/",
+            headers={"Authorization": f"Token {token}"},
+            json={"guild_id": guild_id, "guild_name": guild_name},
+        )
+        if res.status_code == 200:
+            break
+    return res
+
+
+def bluff_number_result_retrieve_request(token, discord_id, username):
+    for _ in range(3):
+        res = requests.get(
+            f"http://127.0.0.1:8000/api/bluff-number/result/",
+            headers={"Authorization": f"Token {token}"},
+            json={"discord_id": discord_id, "username": username},
+        )
+        if res.status_code == 200:
+            break
+    return res
+
+
+def bluff_number_result_play_request(token, discord_id, username):
+    for _ in range(3):
+        res = requests.post(
+            f"http://127.0.0.1:8000/api/bluff-number/play/",
+            headers={"Authorization": f"Token {token}"},
+            json={"discord_id": discord_id, "username": username},
+        )
+        if res.status_code == 200:
+            break
+    return res
+
+
+def bluff_number_result_win_request(token, discord_id, username):
+    for _ in range(3):
+        res = requests.post(
+            f"http://127.0.0.1:8000/api/bluff-number/win/",
+            headers={"Authorization": f"Token {token}"},
+            json={"discord_id": discord_id, "username": username},
+        )
+        if res.status_code == 200:
+            break
+    return res

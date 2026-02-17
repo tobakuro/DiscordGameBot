@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    BluffNumberResult,
     DiscordGuild,
     DiscordUser,
     OverSleptResult,
@@ -33,3 +34,8 @@ class OverSleptResultAdmin(admin.ModelAdmin):
 @admin.register(PredictionResult)
 class PredictionResultAdmin(admin.ModelAdmin):
     list_display = ("user", "correct_count", "failed_count")
+
+
+@admin.register(BluffNumberResult)
+class BluffNumberResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "play_count", "win_count")

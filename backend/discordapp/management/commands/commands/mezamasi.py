@@ -97,7 +97,7 @@ async def start_morning_mission(interaction, target_time_str):
         
         await asyncio.sleep(1)
 
-    # --- 最終判定と特大晒し（ここを統合しました） ---
+    # --- 最終判定と特大晒し ---
     winners = []
     losers = []
     
@@ -112,7 +112,7 @@ async def start_morning_mission(interaction, target_time_str):
 
         # 🚨 特大晒しEmbedの構築
         embed = discord.Embed(
-            title="🚨🚨🚨 【 最終宣告：寝坊確定 】 🚨🚨🚨",
+            title="🚨🚨🚨 【 最終報告：寝坊確定 】 🚨🚨🚨",
             description=f"# {member.mention} の敗北\n\n設定時刻になっても、一度も姿を現しませんでした。\n## 累計不名誉記録：**{count}回**",
             color=0xff0000 # 警告の赤
         )
@@ -132,7 +132,7 @@ async def start_morning_mission(interaction, target_time_str):
         for winner in winners:
             add_stats(winner.id, winner.display_name, "predictions")
 
-        await channel.send(content=f"@everyone 📢 **寝坊者報告！**", embed=embed)
+        await channel.send(content=f"📢 **寝坊者報告！**", embed=embed)
 
     else:
         # 【起床成功時】

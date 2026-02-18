@@ -43,3 +43,13 @@ class PredictionResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = PredictionResult
         fields = ["discord_id", "username", "correct_count", "failed_count"]
+
+
+class BluffNumberResultSerializer(serializers.Serializer):
+    discord_id = serializers.CharField(source="user.discord_id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    play_count = serializers.IntegerField()
+    win_count = serializers.IntegerField()
+
+    class Meta:
+        fields = ["discord_id", "username", "play_count", "win_count"]

@@ -1,15 +1,13 @@
 import discord
-import requests
-from asgiref.sync import sync_to_async
 from discord import app_commands
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from .commands.wakewake import wake1
-from .commands.flash import flash
+from .commands import modules, quizcmd
 from .commands.bluff_number.bluff_number import bluff_number
-from .commands.quizcmd import quiz
+from .commands.flash import flash
+from .commands.wakewake import wake1
 
 CustomUser = get_user_model()
 
@@ -22,12 +20,8 @@ class MyClient(discord.Client):
         self.token = self.get_token()
 
     def get_token(self) -> str:
-        # r = requests.post(
-        #     f"http://127.0.0.1:8000/api/login/",
-        #     json={"username": "arcsino", "password": "testpass123"},
-        # )
-        # return r.json().get("token", "")
-        pass
+        res = modules.login_request()
+        return res.json().get("token", "")
 
     async def setup_hook(self):
         await self.tree.sync()
@@ -37,35 +31,21 @@ class MyClient(discord.Client):
 
     async def on_member_join(self, member):
         """メンバーがサーバーに参加したときのイベント"""
-        for _ in range(3):
-            r = requests.post(
-                "http://127.0.0.1:8000/api/guild/add-member/",
-                headers={"Authorization": f"Token {self.token}"},
-                json={
-                    "guild_id": member.guild.id,
-                    "guild_name": member.guild.name,
-                    "discord_id": str(member.id),
-                    "username": member.display_name,
-                },
-            )
-            if r.status_code == 200:
-                break
+        res = modules.add_member_to_guild_request(
+            guild_id=member.guild.id,
+            guild_name=member.guild.name,
+            discord_id=str(member.id),
+            username=member.display_name,
+        )
 
     async def on_member_remove(self, member):
         """メンバーがサーバーから退出したときのイベント"""
-        for _ in range(3):
-            r = requests.post(
-                "http://127.0.0.1:8000/api/guild/remove-member/",
-                headers={"Authorization": f"Token {self.token}"},
-                json={
-                    "guild_id": member.guild.id,
-                    "discord_id": str(member.id),
-                    "guild_name": member.guild.name,
-                    "username": member.display_name,
-                },
-            )
-            if r.status_code == 200:
-                break
+        res = modules.remove_member_from_guild_request(
+            guild_id=member.guild.id,
+            guild_name=member.guild.name,
+            discord_id=str(member.id),
+            username=member.display_name,
+        )
 
     async def on_voice_state_update(self, member, before, after):
         """ユーザーがボイスチャンネルに参加したときのイベント"""
@@ -76,9 +56,11 @@ class MyClient(discord.Client):
 
 
 client = MyClient(intents=discord.Intents.all())
+client.tree.add_command(quizcmd.quiz)
+client.tree.add_command(quizcmd.quiz_result_list)
+client.tree.add_command(quizcmd.quiz_result)
 client.tree.add_command(wake1)
 client.tree.add_command(flash)
-client.tree.add_command(quiz)
 client.tree.add_command(bluff_number)
 
 

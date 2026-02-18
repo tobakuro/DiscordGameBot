@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from .commands import modules, quizcmd
 from .commands.bluff_number.bluff_number import bluff_number
 from .commands.flash import flash
+from .commands.nyaagenesis import nyaagenesis
 from .commands.wakewake import wake1
 
 CustomUser = get_user_model()
@@ -62,6 +63,7 @@ client.tree.add_command(quizcmd.quiz_result)
 client.tree.add_command(wake1)
 client.tree.add_command(flash)
 client.tree.add_command(bluff_number)
+client.tree.add_command(nyaagenesis)
 
 
 class Command(BaseCommand):

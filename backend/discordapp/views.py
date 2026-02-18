@@ -4,16 +4,25 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .mixins import (
+    create_bluff_number_result,
+    create_flash_result,
+    create_or_update_discord_guild,
+    create_or_update_discord_user,
+    create_overslept_result,
+    create_prediction_result,
+    create_quiz_result,
+)
 from .models import (
     BluffNumberResult,
-    DiscordGuild,
-    DiscordUser,
+    FlashResult,
     OverSleptResult,
     PredictionResult,
     QuizResult,
 )
 from .serializers import (
     BluffNumberResultSerializer,
+    FlashResultSerializer,
     LoginSerializer,
     OverSleptResultSerializer,
     PredictionResultSerializer,
@@ -21,67 +30,9 @@ from .serializers import (
 )
 
 
-def create_or_update_discord_user(discord_id: str, username: str) -> DiscordUser:
-    try:
-        user = DiscordUser.objects.get(discord_id=discord_id)
-        if user.username != username:
-            user.username = username
-            user.save()
-    except DiscordUser.DoesNotExist:
-        user = DiscordUser.objects.create(discord_id=discord_id, username=username)
-    return user
-
-
-def create_or_update_discord_guild(guild_id: str, name: str) -> DiscordGuild:
-    try:
-        guild = DiscordGuild.objects.get(guild_id=guild_id)
-        if guild.name != name:
-            guild.name = name
-            guild.save()
-    except DiscordGuild.DoesNotExist:
-        guild = DiscordGuild.objects.create(guild_id=guild_id, name=name)
-    return guild
-
-
-def create_quiz_result(user: DiscordUser) -> QuizResult:
-    try:
-        quiz_result = QuizResult.objects.get(user=user)
-    except QuizResult.DoesNotExist:
-        quiz_result = QuizResult.objects.create(
-            user=user, correct_count=0, failed_count=0
-        )
-    return quiz_result
-
-
-def create_overslept_result(user: DiscordUser) -> OverSleptResult:
-    try:
-        overslept_result = OverSleptResult.objects.get(user=user)
-    except OverSleptResult.DoesNotExist:
-        overslept_result = OverSleptResult.objects.create(user=user, overslept_count=0)
-    return overslept_result
-
-
-def create_prediction_result(user: DiscordUser) -> PredictionResult:
-    try:
-        prediction_result = PredictionResult.objects.get(user=user)
-    except PredictionResult.DoesNotExist:
-        prediction_result = PredictionResult.objects.create(
-            user=user, correct_count=0, failed_count=0
-        )
-    return prediction_result
-
-
-def create_bluff_number_result(user: DiscordUser) -> BluffNumberResult:
-    try:
-        bluff_number_result = BluffNumberResult.objects.get(user=user)
-    except BluffNumberResult.DoesNotExist:
-        bluff_number_result = BluffNumberResult.objects.create(
-            user=user, play_count=0, win_count=0
-        )
-    return bluff_number_result
-
-
 class LoginAPIView(generics.GenericAPIView):
+    """ログイン用のAPIビュー"""
+
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
@@ -98,6 +49,8 @@ class LoginAPIView(generics.GenericAPIView):
 
 
 class AddMemberToGuildAPIView(generics.GenericAPIView):
+    """ギルドにメンバーを追加するAPIビュー"""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -113,6 +66,8 @@ class AddMemberToGuildAPIView(generics.GenericAPIView):
 
 
 class RemoveMemberFromGuildAPIView(generics.GenericAPIView):
+    """ギルドからメンバーを削除するAPIビュー"""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -130,6 +85,8 @@ class RemoveMemberFromGuildAPIView(generics.GenericAPIView):
 
 
 class QuizResultListAPIView(generics.GenericAPIView):
+    """QuizResultの一覧を取得するAPIビュー"""
+
     queryset = QuizResult.objects.all()
     serializer_class = QuizResultSerializer
     permission_classes = [IsAuthenticated]
@@ -146,6 +103,8 @@ class QuizResultListAPIView(generics.GenericAPIView):
 
 
 class QuizResultRetrieveAPIView(generics.RetrieveAPIView):
+    """QuizResultを取得するAPIビュー"""
+
     queryset = QuizResult.objects.all()
     serializer_class = QuizResultSerializer
     permission_classes = [IsAuthenticated]
@@ -160,6 +119,8 @@ class QuizResultRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class QuizResultPlusAPIView(generics.UpdateAPIView):
+    """QuizResultの正解数を増加させるAPIビュー"""
+
     queryset = QuizResult.objects.all()
     serializer_class = QuizResultSerializer
     permission_classes = [IsAuthenticated]
@@ -176,6 +137,8 @@ class QuizResultPlusAPIView(generics.UpdateAPIView):
 
 
 class QuizResultMinusAPIView(generics.UpdateAPIView):
+    """QuizResultの不正解数を増加させるAPIビュー"""
+
     queryset = QuizResult.objects.all()
     serializer_class = QuizResultSerializer
     permission_classes = [IsAuthenticated]
@@ -192,6 +155,8 @@ class QuizResultMinusAPIView(generics.UpdateAPIView):
 
 
 class OverSleptResultListAPIView(generics.GenericAPIView):
+    """OverSleptResultの一覧を取得するAPIビュー"""
+
     queryset = OverSleptResult.objects.all()
     serializer_class = OverSleptResultSerializer
     permission_classes = [IsAuthenticated]
@@ -208,6 +173,8 @@ class OverSleptResultListAPIView(generics.GenericAPIView):
 
 
 class OverSleptResultRetrieveAPIView(generics.RetrieveAPIView):
+    """OverSleptResultを取得するAPIビュー"""
+
     queryset = OverSleptResult.objects.all()
     serializer_class = OverSleptResultSerializer
     permission_classes = [IsAuthenticated]
@@ -222,6 +189,8 @@ class OverSleptResultRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class OverSleptResultPlusAPIView(generics.UpdateAPIView):
+    """OverSleptResultの寝坊数を増加させるAPIビュー"""
+
     queryset = OverSleptResult.objects.all()
     serializer_class = OverSleptResultSerializer
     permission_classes = [IsAuthenticated]
@@ -238,6 +207,8 @@ class OverSleptResultPlusAPIView(generics.UpdateAPIView):
 
 
 class PredictionResultListAPIView(generics.GenericAPIView):
+    """PredictionResultの一覧を取得するAPIビュー"""
+
     queryset = PredictionResult.objects.all()
     serializer_class = PredictionResultSerializer
     permission_classes = [IsAuthenticated]
@@ -254,6 +225,8 @@ class PredictionResultListAPIView(generics.GenericAPIView):
 
 
 class PredictionResultRetrieveAPIView(generics.RetrieveAPIView):
+    """PredictionResultを取得するAPIビュー"""
+
     queryset = PredictionResult.objects.all()
     serializer_class = PredictionResultSerializer
     permission_classes = [IsAuthenticated]
@@ -268,6 +241,8 @@ class PredictionResultRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class PredictionResultPlusAPIView(generics.UpdateAPIView):
+    """PredictionResultの正解数を増加させるAPIビュー"""
+
     queryset = PredictionResult.objects.all()
     serializer_class = PredictionResultSerializer
     permission_classes = [IsAuthenticated]
@@ -284,6 +259,8 @@ class PredictionResultPlusAPIView(generics.UpdateAPIView):
 
 
 class PredictionResultMinusAPIView(generics.UpdateAPIView):
+    """PredictionResultの不正解数を増加させるAPIビュー"""
+
     queryset = PredictionResult.objects.all()
     serializer_class = PredictionResultSerializer
     permission_classes = [IsAuthenticated]
@@ -300,6 +277,8 @@ class PredictionResultMinusAPIView(generics.UpdateAPIView):
 
 
 class BluffNumberResultListAPIView(generics.GenericAPIView):
+    """BluffNumberResultの一覧を取得するAPIビュー"""
+
     queryset = BluffNumberResult.objects.all()
     serializer_class = BluffNumberResultSerializer
     permission_classes = [IsAuthenticated]
@@ -316,6 +295,8 @@ class BluffNumberResultListAPIView(generics.GenericAPIView):
 
 
 class BluffNumberResultRetrieveAPIView(generics.RetrieveAPIView):
+    """BluffNumberResultを取得するAPIビュー"""
+
     queryset = BluffNumberResult.objects.all()
     serializer_class = BluffNumberResultSerializer
     permission_classes = [IsAuthenticated]
@@ -330,6 +311,8 @@ class BluffNumberResultRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class BluffNumberPlayAPIView(generics.UpdateAPIView):
+    """BluffNumberResultのプレイ数を増加させるAPIビュー"""
+
     queryset = BluffNumberResult.objects.all()
     serializer_class = BluffNumberResultSerializer
     permission_classes = [IsAuthenticated]
@@ -346,6 +329,8 @@ class BluffNumberPlayAPIView(generics.UpdateAPIView):
 
 
 class BluffNumberWinAPIView(generics.UpdateAPIView):
+    """BluffNumberResultの勝利数を増加させるAPIビュー"""
+
     queryset = BluffNumberResult.objects.all()
     serializer_class = BluffNumberResultSerializer
     permission_classes = [IsAuthenticated]
@@ -358,4 +343,74 @@ class BluffNumberWinAPIView(generics.UpdateAPIView):
         bluff_number_result.win_count += 1
         bluff_number_result.save()
         serializer = self.get_serializer(bluff_number_result)
+        return Response(serializer.data)
+
+
+class FlashResultListAPIView(generics.GenericAPIView):
+    """FlashResultの一覧を取得するAPIビュー"""
+
+    queryset = FlashResult.objects.all()
+    serializer_class = FlashResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        guild_id = request.data.get("guild_id")
+        guild_name = request.data.get("guild_name", "")
+        guild = create_or_update_discord_guild(guild_id, guild_name)
+        members = guild.members.all()
+        serializers = self.get_serializer(
+            [create_flash_result(member) for member in members], many=True
+        )
+        return Response(serializers.data)
+
+
+class FlashResultRetrieveAPIView(generics.RetrieveAPIView):
+    """FlashResultを取得するAPIビュー"""
+
+    queryset = FlashResult.objects.all()
+    serializer_class = FlashResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        flash_result_instance = create_flash_result(user)
+        serializer = self.get_serializer(flash_result_instance)
+        return Response(serializer.data)
+
+
+class FlashplayAPIView(generics.UpdateAPIView):
+    """FlashResultのプレイ数を増加させるAPIビュー"""
+
+    queryset = FlashResult.objects.all()
+    serializer_class = FlashResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        flash_result_instance = create_flash_result(user)
+        flash_result_instance.play_count += 1
+        flash_result_instance.save()
+        serializer = self.get_serializer(flash_result_instance)
+        return Response(serializer.data)
+
+
+class FlashCorrectAPIView(generics.UpdateAPIView):
+    """FlashResultの正解数を増加させるAPIビュー"""
+
+    queryset = FlashResult.objects.all()
+    serializer_class = FlashResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        discord_id = request.data.get("discord_id")
+        username = request.data.get("username")
+        user = create_or_update_discord_user(discord_id, username)
+        flash_result_instance = create_flash_result(user)
+        flash_result_instance.correct_count += 1
+        flash_result_instance.save()
+        serializer = self.get_serializer(flash_result_instance)
         return Response(serializer.data)

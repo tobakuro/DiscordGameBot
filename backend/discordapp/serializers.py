@@ -4,6 +4,8 @@ from .models import DiscordUser, OverSleptResult, PredictionResult, QuizResult
 
 
 class LoginSerializer(serializers.Serializer):
+    """ログイン用のシリアライザ"""
+
     username = serializers.CharField()
     password = serializers.CharField()
 
@@ -12,12 +14,15 @@ class LoginSerializer(serializers.Serializer):
 
 
 class DiscordUserSerializer(serializers.ModelSerializer):
+    """ "DiscordUserモデルのシリアライザ"""
+
     class Meta:
         model = DiscordUser
         fields = ["discord_id", "username"]
 
 
 class QuizResultSerializer(serializers.ModelSerializer):
+    """QuizResultモデルのシリアライザ"""
 
     discord_id = serializers.CharField(source="user.discord_id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
@@ -28,6 +33,8 @@ class QuizResultSerializer(serializers.ModelSerializer):
 
 
 class OverSleptResultSerializer(serializers.ModelSerializer):
+    """OverSleptResultモデルのシリアライザ"""
+
     discord_id = serializers.CharField(source="user.discord_id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
 
@@ -37,6 +44,8 @@ class OverSleptResultSerializer(serializers.ModelSerializer):
 
 
 class PredictionResultSerializer(serializers.ModelSerializer):
+    """PredictionResultモデルのシリアライザ"""
+
     discord_id = serializers.CharField(source="user.discord_id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
 
@@ -46,6 +55,8 @@ class PredictionResultSerializer(serializers.ModelSerializer):
 
 
 class BluffNumberResultSerializer(serializers.Serializer):
+    """BluffNumberResultモデルのシリアライザ"""
+
     discord_id = serializers.CharField(source="user.discord_id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
     play_count = serializers.IntegerField()
@@ -53,3 +64,15 @@ class BluffNumberResultSerializer(serializers.Serializer):
 
     class Meta:
         fields = ["discord_id", "username", "play_count", "win_count"]
+
+
+class FlashResultSerializer(serializers.Serializer):
+    """FlashResultモデルのシリアライザ"""
+
+    discord_id = serializers.CharField(source="user.discord_id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    play_count = serializers.IntegerField()
+    correct_count = serializers.IntegerField()
+
+    class Meta:
+        fields = ["discord_id", "username", "play_count", "correct_count"]

@@ -4,6 +4,8 @@ from django.db import models
 
 
 class DiscordUser(models.Model):
+    """DiscordUserモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     discord_id = models.CharField(max_length=255, unique=True)
     username = models.CharField(max_length=255)
@@ -17,6 +19,8 @@ class DiscordUser(models.Model):
 
 
 class DiscordGuild(models.Model):
+    """DiscordGuildモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     guild_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -31,6 +35,8 @@ class DiscordGuild(models.Model):
 
 
 class QuizResult(models.Model):
+    """QuizResultモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
     correct_count = models.IntegerField(default=0)
@@ -45,6 +51,8 @@ class QuizResult(models.Model):
 
 
 class OverSleptResult(models.Model):
+    """OverSleptResultモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
     overslept_count = models.IntegerField(default=0)
@@ -58,6 +66,8 @@ class OverSleptResult(models.Model):
 
 
 class PredictionResult(models.Model):
+    """PredictionResultモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
     correct_count = models.IntegerField(default=0)
@@ -72,6 +82,8 @@ class PredictionResult(models.Model):
 
 
 class BluffNumberResult(models.Model):
+    """BluffNumberResultモデル"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
     play_count = models.IntegerField(default=0)
@@ -80,6 +92,22 @@ class BluffNumberResult(models.Model):
     class Meta:
         verbose_name = "ブラフナンバー結果"
         verbose_name_plural = "ブラフナンバー結果一覧"
+
+    def __str__(self):
+        return self.user.username
+
+
+class FlashResult(models.Model):
+    """FlashResultモデル"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE)
+    play_count = models.IntegerField(default=0)
+    correct_count = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = "フラッシュ結果"
+        verbose_name_plural = "フラッシュ結果一覧"
 
     def __str__(self):
         return self.user.username

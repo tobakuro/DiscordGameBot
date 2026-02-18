@@ -135,6 +135,9 @@ DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default="")
 ADMIN_USERNAME = env("ADMIN_USERNAME")
 ADMIN_PASSWORD = env("ADMIN_PASSWORD")
 
+# nya genesis URL
+NYA_GENESIS_URL = env("NYA_GENESIS_URL", default="")
+
 # Django REST Framework settings
 
 REST_FRAMEWORK = {

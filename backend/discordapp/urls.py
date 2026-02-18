@@ -6,6 +6,10 @@ from .views import (
     BluffNumberResultListAPIView,
     BluffNumberResultRetrieveAPIView,
     BluffNumberWinAPIView,
+    FlashCorrectAPIView,
+    FlashplayAPIView,
+    FlashResultListAPIView,
+    FlashResultRetrieveAPIView,
     LoginAPIView,
     OverSleptResultListAPIView,
     OverSleptResultPlusAPIView,
@@ -108,5 +112,25 @@ urlpatterns = [
         "bluff-number/win/",
         view=BluffNumberWinAPIView.as_view(),
         name="bluff-number-win",
+    ),
+    path(
+        "flash/results/",
+        view=FlashResultListAPIView.as_view(),
+        name="flash-result-list",
+    ),
+    path(
+        "flash/result/",
+        view=FlashResultRetrieveAPIView.as_view(),
+        name="flash-result-retrieve",
+    ),
+    path(
+        "flash/play/",
+        view=FlashplayAPIView.as_view(),
+        name="flash-play",
+    ),
+    path(
+        "flash/correct/",
+        view=FlashCorrectAPIView.as_view(),
+        name="flash-correct",
     ),
 ]

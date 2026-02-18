@@ -4,6 +4,7 @@ from .models import (
     BluffNumberResult,
     DiscordGuild,
     DiscordUser,
+    FlashResult,
     OverSleptResult,
     PredictionResult,
     QuizResult,
@@ -39,3 +40,8 @@ class PredictionResultAdmin(admin.ModelAdmin):
 @admin.register(BluffNumberResult)
 class BluffNumberResultAdmin(admin.ModelAdmin):
     list_display = ("user", "play_count", "win_count")
+
+
+@admin.register(FlashResult)
+class FlashResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "play_count", "correct_count")
